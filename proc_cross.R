@@ -7,7 +7,7 @@ library(tibble)
 library(ggplot2)
 library(ggpubr)
 library(gridExtra)
-
+rm(list=ls())
 #Recode function
 allele_recode <- function(x){
   for(chr in seq_along(x$founder_geno)) {
@@ -108,9 +108,11 @@ percMiss %>% ggexport(filename = "../output/plots/PercMiss_Plot.pdf")
 ###################################
 #Check for duplicate Mice - output suspicious ones and rug hist
 cat("\nChecking for duplicate samples...\n")
-cat("\nRunning pairwise genotype scan...\n")
+cat("\nRunning pairwise genotype scan...")
 cg <- compare_geno(input, cores=4)
-cat("\nGenerating Duplicate Sample Diagnostic...\n")
+cat("Finished.\n")
+
+cat("\nGenerating Duplicate Sample Diagnostic...")
 summary(cg)
 summary(cg[upper.tri(cg)])
 msgOutputs[["DupesMsg"]] <- summary(cg)
@@ -156,18 +158,19 @@ fg <- do.call("cbind", input$founder_geno[1:19])
 #Subset for columns that do not have any zero genotypes. 
 g <- g[,colSums(fg==0)==0]
 fg <- fg[,colSums(fg==0)==0]
-cat("\nExporting 'g' object...\n")
+cat("\nExporting 'g' and 'fgn' objects...")
 saveRDS(g, "../output/objects/g.rds")
-
 #Vector for number of minor alleles by SNP
 fgn <- colSums(fg==3)
+saveRDS(fgn, "../output/objects/fgn.rds")
+cat("Finished.\n")
 
 #Calc genofreqs by individual
 gf_ind <- vector("list", 4)
 for(i in 1:4) {
   gf_ind[[i]] <- t(apply(g[,fgn==i], 1, function(a) table(factor(a, 1:3))/sum(a != 0)))
 }
-cat("\nGenerating Sample Tri-plot...\n")
+cat("\nGenerating Sample Tri-plot...")
 #Broman: The following triangle plots show the genotype frequency distributions for the mice, among the four groups of markers with common minor allele frequency (MAF) in the founder strains. These plots make use of the fact that for a point within an equilateral triangle, the sum of the distances to the three sides is a constant.
 pdf("../output/plots/SampTriPlot.pdf", width = 6, height = 6)
 par(mfrow=c(2,2), mar=c(0.6, 0.6, 2.6, 0.6))
@@ -205,7 +208,7 @@ for(i in 1:4) {
   }
 }
 dev.off()
-
+cat("Finished.\n")
 #-------------------------------
 #Generate Cross_Pass1
 #-------------------------------
@@ -221,12 +224,12 @@ if(pc_thresh2 < 20){
   cross_pass1 <- input[percent_missing < 20]
 }
 cat("Missing percent threshold:", round(pc_thresh2,2))
-cat("\nExporting Cross Pass1 object...\n")
+cat("\nExporting Cross Pass1 object...")
 saveRDS(cross_pass1, file = "../output/objects/cross_pass1.rds")
-
+cat("Finished.\n")
 #--------------------------------
 #Generate missing data by Marker plot - possible after pass1
-cat("\nGenerating Global Marker Diagnostic...\n")
+cat("\nGenerating Global Marker Diagnostic...")
 pmis_mar <- n_missing(cross_pass1, "marker", "proportion")*100
 
 tt <- ttheme_default(colhead=list(fg_params = list(parse=TRUE)),
@@ -258,7 +261,7 @@ misMarPlot <- ggplot(data.frame(props = pmis_mar), aes(x = props)) +
 
 grid.arrange(misMarPlot, tbl, tbl2,nrow = 3, as.table = T, heights = c(4,1,1)) %>%
   ggsave(filename = "../output/plots/MissMarkDiag.pdf", width = 6, height = 4)
-
+cat("Finished.\n")
 
 invisible(gc())
 cat("\nproc-cross.R: Status: Complete")

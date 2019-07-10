@@ -6,7 +6,7 @@ library(ggpubr)
 library(ggrepel)
 library(qtlcharts)
 library(data.table)
-
+rm(list=ls())
 cat("Running Clean-o-type...\n")
 cat("\nCalling script: fstGen.R\n")
 
